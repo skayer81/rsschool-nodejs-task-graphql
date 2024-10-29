@@ -3,6 +3,7 @@ import { createGqlResponseSchema, gqlResponseSchema } from './schemas.js';
 import {
   graphql,
   GraphQLBoolean,
+  GraphQLEnumType,
   GraphQLFloat,
   GraphQLInt,
   GraphQLList,
@@ -10,6 +11,16 @@ import {
   GraphQLSchema,
   GraphQLString,
 } from 'graphql';
+import { UUIDType } from './types/uuid.js';
+import { MemberTypeId } from '../member-types/schemas.js';
+
+const MemberTypeIdEnum = new GraphQLEnumType({
+  name: 'MemberTypeId',
+  values: {
+    BASIC: { value: 'BASIC' },
+    BUSINESS: { value: 'BUSINESS' },
+  },
+});
 
 const MemberType = new GraphQLObjectType({
   name: 'MemberType',
@@ -62,7 +73,6 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
 
     async handler(req) {
       const { query, variables } = req.body;
-      //  const query = req.body.query;
 
       console.log(query);
       console.log(variables);
@@ -71,30 +81,74 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
         fields: () => ({
           memberTypes: {
             type: new GraphQLList(MemberType),
-            description: 'Returns a list of member types',
-            resolve: async () => {
-              return await prisma.memberType.findMany();
+            resolve: async (_, { memberTypeId }) => {
+              return await prisma.memberType.findMany({});
+            },
+          },
+          memberType: {
+            type: MemberType,
+            args: {
+              id: { type: MemberTypeIdEnum },
+            },
+            resolve: async (_, { id }) => {
+              const memberType = await prisma.memberType.findUnique({
+                where: { id: id as string },
+              });
+              return memberType;
             },
           },
           posts: {
             type: new GraphQLList(PostType),
-            description: 'Returns a list of posts',
             resolve: async () => {
               return await prisma.post.findMany();
             },
           },
+          post: {
+            type: PostType,
+            args: {
+              id: { type: UUIDType },
+            },
+            resolve: async (_, { id }) => {
+              const post = await prisma.post.findUnique({
+                where: { id: id as string },
+              });
+              return post;
+            },
+          },
           users: {
             type: new GraphQLList(UserType),
-            description: 'Returns a list of users',
             resolve: async () => {
               return await prisma.user.findMany();
             },
           },
+          user: {
+            type: UserType,
+            args: {
+              id: { type: UUIDType },
+            },
+            resolve: async (_, { id }) => {
+              const post = await prisma.user.findUnique({
+                where: { id: id as string },
+              });
+              return post;
+            },
+          },
           profiles: {
             type: new GraphQLList(ProfileType),
-            description: 'Returns a list of profiles',
             resolve: async () => {
               return await prisma.profile.findMany();
+            },
+          },
+          profile: {
+            type: ProfileType,
+            args: {
+              id: { type: UUIDType },
+            },
+            resolve: async (_, { id }) => {
+              const post = await prisma.profile.findUnique({
+                where: { id: id as string },
+              });
+              return post;
             },
           },
         }),
@@ -106,8 +160,11 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
         const result = await graphql({
           schema: schemaTest,
           source: query,
+          variableValues: variables,
         });
-        //   console.log(JSON.stringify(result, null, 2));
+        console.log('---------------------результат');
+        //        console.log(JSON.stringify(result, null, 2));
+        console.log('---------------------результат конец');
         return result;
       } catch (error) {
         console.error('Ошибка при выполнении запроса:', error);
