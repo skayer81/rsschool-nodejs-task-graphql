@@ -46,6 +46,13 @@ const UserType = new GraphQLObjectType({
     id: { type: GraphQLString },
     name: { type: GraphQLString },
     balance: { type: GraphQLFloat },
+    profile: { type: ProfileType },
+    posts: { type: new GraphQLList(PostType) },
+
+    // profile          Profile?
+    // posts            Post[]
+    // userSubscribedTo SubscribersOnAuthors[] @relation("subscriber")
+    // subscribedToUser SubscribersOnAuthors[] @relation("author")
   }),
 });
 
@@ -91,6 +98,7 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
               id: { type: MemberTypeIdEnum },
             },
             resolve: async (_, { id }) => {
+              console.log('+++++++++++++++ ++++++++++++ memberType');
               const memberType = await prisma.memberType.findUnique({
                 where: { id: id as string },
               });
@@ -109,6 +117,7 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
               id: { type: UUIDType },
             },
             resolve: async (_, { id }) => {
+              console.log('+++++++++++++++ ++++++++++++ post');
               const post = await prisma.post.findUnique({
                 where: { id: id as string },
               });
@@ -127,10 +136,13 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
               id: { type: UUIDType },
             },
             resolve: async (_, { id }) => {
-              const post = await prisma.user.findUnique({
+              console.log('++++++++++++++++++++++user');
+              const user = await prisma.user.findUnique({
                 where: { id: id as string },
               });
-              return post;
+              console.log('++++++++++++++++++++++user');
+              console.log(user);
+              return user;
             },
           },
           profiles: {
@@ -145,10 +157,11 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
               id: { type: UUIDType },
             },
             resolve: async (_, { id }) => {
-              const post = await prisma.profile.findUnique({
+              console.log('+++++++++++++++ ++++++++++++ profile');
+              const profile = await prisma.profile.findUnique({
                 where: { id: id as string },
               });
-              return post;
+              return profile;
             },
           },
         }),
@@ -163,12 +176,12 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
           variableValues: variables,
         });
         console.log('---------------------результат');
-        //        console.log(JSON.stringify(result, null, 2));
+        console.log(JSON.stringify(result, null, 2));
         console.log('---------------------результат конец');
         return result;
       } catch (error) {
         console.error('Ошибка при выполнении запроса:', error);
-        throw new Error('Ошибка при выполнении запроса');
+        // throw new Error('Ошибка при выполнении запроса');
       }
     },
   });
