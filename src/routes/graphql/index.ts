@@ -23,11 +23,17 @@ const MemberTypeIdEnum = new GraphQLEnumType({
 });
 
 const MemberType = new GraphQLObjectType({
+  // id                 String @id
+  // discount           Float
+  // postsLimitPerMonth Int
+
+  // profiles Profile[]
   name: 'MemberType',
   fields: () => ({
     id: { type: GraphQLString },
     discount: { type: GraphQLFloat },
     postsLimitPerMonth: { type: GraphQLInt },
+    //  profiles: { type: new GraphQLList(ProfileType) },
   }),
 });
 
@@ -56,12 +62,39 @@ const UserType = new GraphQLObjectType({
   }),
 });
 
+// const SubscribersOnAuthorsType = new GraphQLObjectType({
+//   name: 'SubscribersOnAuthors',
+//   fields: () => ({
+//     id: { type: GraphQLString },
+//     name: { type: GraphQLString },
+//     subscribedToUser: { type: GraphQLFloat },
+//     // profile: { type: ProfileType },
+//     // posts: { type: new GraphQLList(PostType) },
+//   }),
+// });
+
+// model SubscribersOnAuthors {
+//   subscriber   User   @relation("subscriber", fields: [subscriberId], references: [id], onDelete: Cascade)
+//   subscriberId String
+//   author       User   @relation("author", fields: [authorId], references: [id], onDelete: Cascade)
+//   authorId     String
+
+//   @@id([subscriberId, authorId])
+// }
+
 const ProfileType = new GraphQLObjectType({
   name: 'Profile',
   fields: () => ({
     id: { type: GraphQLString },
     isMale: { type: GraphQLBoolean },
     yearOfBirth: { type: GraphQLInt },
+    // user: { type: UserType },
+    memberType: { type: MemberType },
+    memberTypeId: { type: MemberTypeIdEnum },
+    // user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+    // userId       String     @unique
+    // memberType   MemberType @relation(fields: [memberTypeId], references: [id], onDelete: Restrict)
+    // memberTypeId String
   }),
 });
 
@@ -127,7 +160,16 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
           users: {
             type: new GraphQLList(UserType),
             resolve: async () => {
-              return await prisma.user.findMany();
+              return await prisma.user.findMany({
+                include: {
+                  profile: {
+                    include: {
+                      memberType: true,
+                    },
+                  },
+                  posts: true,
+                },
+              });
             },
           },
           user: {
@@ -137,8 +179,19 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
             },
             resolve: async (_, { id }) => {
               console.log('++++++++++++++++++++++user');
+              // const user = await prisma.user.findUnique({
+              //   where: { id: id as string },
+              // });
               const user = await prisma.user.findUnique({
-                where: { id: id as string },
+                where: { id: id },
+                include: {
+                  profile: {
+                    include: {
+                      memberType: true,
+                    },
+                  },
+                  posts: true,
+                },
               });
               console.log('++++++++++++++++++++++user');
               console.log(user);
@@ -176,8 +229,8 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
           variableValues: variables,
         });
         console.log('---------------------результат');
-        console.log(JSON.stringify(result, null, 2));
-        console.log('---------------------результат конец');
+        //  console.log(JSON.stringify(result, null, 2));
+        //  console.log('---------------------результат конец');
         return result;
       } catch (error) {
         console.error('Ошибка при выполнении запроса:', error);
