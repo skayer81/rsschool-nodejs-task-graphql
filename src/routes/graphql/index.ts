@@ -13,9 +13,12 @@ import {
 } from 'graphql';
 import { UUIDType } from './types/uuid.js';
 import { queryType } from './query.js';
+import schema from './schema.js';
 
 const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
   const { prisma } = fastify;
+
+  //prisma.user.create({})
 
   fastify.route({
     url: '/',
@@ -30,21 +33,21 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
     async handler(req) {
       const { query, variables } = req.body;
 
-      //   console.log(query);
-      //   console.log(variables);
+      console.log(query);
+      console.log(variables);
 
-      const schemaTest = new GraphQLSchema({ query: queryType });
+      // const schemaTest = new GraphQLSchema({ query: queryType });
 
       try {
         const result = await graphql({
-          schema: schemaTest,
+          schema: schema,
           source: query,
           variableValues: variables,
           contextValue: { prisma },
         });
-        // console.log('---------------------результат');
-        // console.log(JSON.stringify(result, null, 2));
-        // console.log('---------------------результат конец');
+        console.log('---------------------результат');
+        console.log(JSON.stringify(result, null, 2));
+        console.log('---------------------результат конец');
         return result;
       } catch (error) {
         console.error('Ошибка при выполнении запроса:', error);

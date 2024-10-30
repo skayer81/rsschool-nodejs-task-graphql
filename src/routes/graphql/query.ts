@@ -17,14 +17,19 @@ import {
   PostType,
   ProfileType,
   UserType,
-} from './types.js';
+} from './queryTypes.js';
+import { PrismaClient } from '@prisma/client';
+
+type Prisma = {
+  prisma: PrismaClient;
+};
 
 export const queryType = new GraphQLObjectType({
   name: 'Query',
   fields: () => ({
     memberTypes: {
       type: new GraphQLList(MemberType),
-      resolve: async (_, __, { prisma }) => {
+      resolve: async (_, __, { prisma }: Prisma) => {
         return await prisma.memberType.findMany({});
       },
     },
@@ -62,8 +67,9 @@ export const queryType = new GraphQLObjectType({
     },
     users: {
       type: new GraphQLList(UserType),
-      resolve: async (_, __, { prisma }) => {
-        return await prisma.user.findMany({
+      resolve: async (_, __, { prisma }: Prisma) => {
+        //  if (!prisma.user) return;
+        const result = await prisma.user.findMany({
           include: {
             profile: {
               include: {
@@ -73,6 +79,7 @@ export const queryType = new GraphQLObjectType({
             posts: true,
           },
         });
+        return result;
       },
     },
     user: {
@@ -116,7 +123,7 @@ export const queryType = new GraphQLObjectType({
     },
     profiles: {
       type: new GraphQLList(ProfileType),
-      resolve: async (_, __, { prisma }) => {
+      resolve: async (_, __, { prisma }: Prisma) => {
         return await prisma.profile.findMany();
       },
     },
