@@ -74,8 +74,58 @@ export const mutationType = new GraphQLObjectType({
         });
       },
     },
+    deletePost: {
+      // type: PostType,
+      type: GraphQLString,
+      args: {
+        id: { type: UUIDType },
+      },
+      resolve: async (_, { id }, { prisma }: Prisma) => {
+        console.log('post');
+        const post = await prisma.post.delete({
+          where: { id: id },
+        });
+        console.log('post', post);
+        return 'post';
+      },
+    },
+    deleteProfile: {
+      // type: ProfileType,
+      type: GraphQLString,
+      args: {
+        id: { type: UUIDType },
+      },
+      resolve: async (_, { id }, { prisma }: Prisma) => {
+        console.log('profile');
+        const profile = await prisma.profile.delete({
+          where: { id: id },
+        });
+        console.log('profile', profile);
+        return 'profile';
+      },
+    },
+    deleteUser: {
+      //type: UserType,
+      type: GraphQLString,
+      // type: null,
+      args: {
+        id: { type: UUIDType },
+      },
+      resolve: async (_, { id }, { prisma }: Prisma) => {
+        console.log('user');
+        const user = await prisma.user.delete({
+          where: { id: id },
+        });
+        console.log('user', user);
+        return 'user';
+      },
+    },
   }),
 });
+
+// deletePost(id: $postId)
+// deleteProfile(id: $profileId)
+// deleteUser(id: $userId)
 
 // test/routes/gql-mutations.test.js 1> mutation ($postDto: CreatePostInput!, $userDto: CreateUserInput!, $profileDto: CreateProfileInput!) {
 //     test/routes/gql-mutations.test.js 1>         createPost(dto: $postDto) {
