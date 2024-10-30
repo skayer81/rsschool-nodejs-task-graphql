@@ -19,7 +19,14 @@ import {
   UserType,
 } from './queryTypes.js';
 import { PrismaClient } from '@prisma/client';
-import { CreatePostInput, CreateProfileInput, CreateUserInput } from './mutationType.js';
+import {
+  ChangePostInput,
+  ChangeProfileInput,
+  ChangeUserInput,
+  CreatePostInput,
+  CreateProfileInput,
+  CreateUserInput,
+} from './mutationType.js';
 
 type Prisma = {
   prisma: PrismaClient;
@@ -118,6 +125,50 @@ export const mutationType = new GraphQLObjectType({
         });
         console.log('user', user);
         return 'user';
+      },
+    },
+
+    changePost: {
+      type: PostType,
+      args: {
+        id: { type: UUIDType },
+        dto: { type: ChangePostInput },
+      },
+      resolve: async (_, { id, dto }, { prisma }) => {
+        const updatedPost = await prisma.post.update({
+          where: { id },
+          data: dto,
+        });
+
+        return updatedPost;
+      },
+    },
+    changeProfile: {
+      type: ProfileType,
+      args: {
+        id: { type: UUIDType },
+        dto: { type: ChangeProfileInput },
+      },
+      resolve: async (_, { id, dto }, { prisma }) => {
+        const updatedProfile = await prisma.profile.update({
+          where: { id },
+          data: dto,
+        });
+        return updatedProfile;
+      },
+    },
+    changeUser: {
+      type: UserType, //GraphQLString,
+      args: {
+        id: { type: UUIDType },
+        dto: { type: ChangeUserInput },
+      },
+      resolve: async (_, { id, dto }, { prisma }) => {
+        const updatedUser = await prisma.user.update({
+          where: { id },
+          data: dto,
+        });
+        return updatedUser;
       },
     },
   }),
