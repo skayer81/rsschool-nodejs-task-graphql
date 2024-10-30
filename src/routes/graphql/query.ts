@@ -1,15 +1,4 @@
-import {
-  graphql,
-  GraphQLBoolean,
-  GraphQLEnumType,
-  GraphQLFloat,
-  GraphQLInt,
-  GraphQLList,
-  GraphQLObjectType,
-  GraphQLSchema,
-  GraphQLString,
-} from 'graphql';
-//import { PrismaClient } from '@prisma/client';
+import { GraphQLList, GraphQLObjectType } from 'graphql';
 import { UUIDType } from './types/uuid.js';
 import {
   MemberType,
@@ -39,7 +28,6 @@ export const queryType = new GraphQLObjectType({
         id: { type: MemberTypeIdEnum },
       },
       resolve: async (_, { id }, { prisma }) => {
-        //  console.log('+++++++++++++++ ++++++++++++ memberType');
         const memberType = await prisma.memberType.findUnique({
           where: { id: id as string },
         });
@@ -58,7 +46,6 @@ export const queryType = new GraphQLObjectType({
         id: { type: UUIDType },
       },
       resolve: async (_, { id }, { prisma }) => {
-        //     console.log('+++++++++++++++ ++++++++++++ post');
         const post = await prisma.post.findUnique({
           where: { id: id as string },
         });
@@ -88,10 +75,6 @@ export const queryType = new GraphQLObjectType({
         id: { type: UUIDType },
       },
       resolve: async (_, { id }, { prisma }) => {
-        //     console.log('++++++++++++++++++++++user');
-        // const user = await prisma.user.findUnique({
-        //   where: { id: id as string },
-        // });
         const user = await prisma.user.findUnique({
           where: { id: id as string },
           include: {
@@ -103,24 +86,17 @@ export const queryType = new GraphQLObjectType({
             posts: true,
             userSubscribedTo: {
               include: {
-                // subscribedToUser: true,
-                //   subscriber: true,
                 author: true,
               },
             },
 
             subscribedToUser: {
               include: {
-                // userSubscribedTo: true,
-                //  author: true,
                 subscriber: true,
               },
             },
           },
         });
-        //    console.log('++++++++++++++++++++++user');
-        //    console.log(user);
-        //    console.log('++++++++++++++++++++++user конец');
         return user;
       },
     },
@@ -136,7 +112,6 @@ export const queryType = new GraphQLObjectType({
         id: { type: UUIDType },
       },
       resolve: async (_, { id }, { prisma }) => {
-        //           console.log('+++++++++++++++ ++++++++++++ profile');
         const profile = await prisma.profile.findUnique({
           where: { id: id as string },
         });

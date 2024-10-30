@@ -1,32 +1,19 @@
-import {
-  graphql,
-  GraphQLBoolean,
-  GraphQLEnumType,
-  GraphQLFloat,
-  GraphQLInt,
-  GraphQLList,
-  GraphQLObjectType,
-  GraphQLSchema,
-  GraphQLString,
-} from 'graphql';
-//import { PrismaClient } from '@prisma/client';
+import { GraphQLObjectType, GraphQLString } from 'graphql';
 import { UUIDType } from './types/uuid.js';
-import {
-  MemberType,
-  MemberTypeIdEnum,
-  PostType,
-  ProfileType,
-  UserType,
-} from './queryTypes.js';
+import { PostType, ProfileType, UserType } from './queryTypes.js';
 import { PrismaClient } from '@prisma/client';
 import {
   ChangePostInput,
+  ChangePostInputType,
   ChangeProfileInput,
+  ChangeProfileInputType,
   ChangeUserInput,
+  ChangeUserInputType,
   CreatePostInput,
   CreateProfileInput,
   CreateUserInput,
 } from './mutationType.js';
+import { UUID } from 'crypto';
 
 type Prisma = {
   prisma: PrismaClient;
@@ -40,7 +27,11 @@ export const mutationType = new GraphQLObjectType({
       args: {
         dto: { type: CreatePostInput },
       },
-      resolve: async (_, { dto }, { prisma }) => {
+      resolve: async (
+        _,
+        { dto }: { dto: { authorId: UUID; content: string; title: string } },
+        { prisma }: Prisma,
+      ) => {
         return await prisma.post.create({
           data: {
             authorId: dto.authorId,
@@ -56,7 +47,11 @@ export const mutationType = new GraphQLObjectType({
       args: {
         dto: { type: CreateUserInput },
       },
-      resolve: async (_, { dto }, { prisma }) => {
+      resolve: async (
+        _,
+        { dto }: { dto: { name: string; balance: number } },
+        { prisma }: Prisma,
+      ) => {
         return await prisma.user.create({
           data: {
             name: dto.name,
@@ -70,7 +65,20 @@ export const mutationType = new GraphQLObjectType({
       args: {
         dto: { type: CreateProfileInput },
       },
-      resolve: async (_, { dto }, { prisma }) => {
+      resolve: async (
+        _,
+        {
+          dto,
+        }: {
+          dto: {
+            userId: UUID;
+            memberTypeId: string;
+            isMale: boolean;
+            yearOfBirth: number;
+          };
+        },
+        { prisma }: Prisma,
+      ) => {
         return await prisma.profile.create({
           data: {
             userId: dto.userId,
@@ -87,7 +95,7 @@ export const mutationType = new GraphQLObjectType({
       args: {
         id: { type: UUIDType },
       },
-      resolve: async (_, { id }, { prisma }: Prisma) => {
+      resolve: async (_, { id }: { id: UUID }, { prisma }: Prisma) => {
         console.log('post');
         const post = await prisma.post.delete({
           where: { id: id },
@@ -102,7 +110,7 @@ export const mutationType = new GraphQLObjectType({
       args: {
         id: { type: UUIDType },
       },
-      resolve: async (_, { id }, { prisma }: Prisma) => {
+      resolve: async (_, { id }: { id: UUID }, { prisma }: Prisma) => {
         console.log('profile');
         const profile = await prisma.profile.delete({
           where: { id: id },
@@ -118,7 +126,7 @@ export const mutationType = new GraphQLObjectType({
       args: {
         id: { type: UUIDType },
       },
-      resolve: async (_, { id }, { prisma }: Prisma) => {
+      resolve: async (_, { id }: { id: UUID }, { prisma }: Prisma) => {
         console.log('user');
         const user = await prisma.user.delete({
           where: { id: id },
@@ -134,7 +142,11 @@ export const mutationType = new GraphQLObjectType({
         id: { type: UUIDType },
         dto: { type: ChangePostInput },
       },
-      resolve: async (_, { id, dto }, { prisma }) => {
+      resolve: async (
+        _,
+        { id, dto }: { id: UUID; dto: ChangePostInputType },
+        { prisma }: Prisma,
+      ) => {
         const updatedPost = await prisma.post.update({
           where: { id },
           data: dto,
@@ -149,7 +161,11 @@ export const mutationType = new GraphQLObjectType({
         id: { type: UUIDType },
         dto: { type: ChangeProfileInput },
       },
-      resolve: async (_, { id, dto }, { prisma }) => {
+      resolve: async (
+        _,
+        { id, dto }: { id: UUID; dto: ChangeProfileInputType },
+        { prisma }: Prisma,
+      ) => {
         const updatedProfile = await prisma.profile.update({
           where: { id },
           data: dto,
@@ -158,12 +174,16 @@ export const mutationType = new GraphQLObjectType({
       },
     },
     changeUser: {
-      type: UserType, //GraphQLString,
+      type: UserType,
       args: {
         id: { type: UUIDType },
         dto: { type: ChangeUserInput },
       },
-      resolve: async (_, { id, dto }, { prisma }) => {
+      resolve: async (
+        _,
+        { id, dto }: { id: UUID; dto: ChangeUserInputType },
+        { prisma }: Prisma,
+      ) => {
         const updatedUser = await prisma.user.update({
           where: { id },
           data: dto,
@@ -178,8 +198,12 @@ export const mutationType = new GraphQLObjectType({
         userId: { type: UUIDType },
         authorId: { type: UUIDType },
       },
-      resolve: async (_, { userId, authorId }, { prisma }) => {
-        const subscription = await prisma.subscribersOnAuthors.create({
+      resolve: async (
+        _,
+        { userId, authorId }: { userId: UUID; authorId: UUID },
+        { prisma }: Prisma,
+      ) => {
+        await prisma.subscribersOnAuthors.create({
           data: {
             subscriber: {
               connect: { id: userId },
@@ -198,8 +222,12 @@ export const mutationType = new GraphQLObjectType({
         userId: { type: UUIDType },
         authorId: { type: UUIDType },
       },
-      resolve: async (_, { userId, authorId }, { prisma }) => {
-        const unsubscribe = await prisma.subscribersOnAuthors.delete({
+      resolve: async (
+        _,
+        { userId, authorId }: { userId: UUID; authorId: UUID },
+        { prisma }: Prisma,
+      ) => {
+        await prisma.subscribersOnAuthors.delete({
           where: {
             subscriberId_authorId: {
               subscriberId: userId,
@@ -212,33 +240,3 @@ export const mutationType = new GraphQLObjectType({
     },
   }),
 });
-
-// deletePost(id: $postId)
-// deleteProfile(id: $profileId)
-// deleteUser(id: $userId)
-
-// test/routes/gql-mutations.test.js 1> mutation ($postDto: CreatePostInput!, $userDto: CreateUserInput!, $profileDto: CreateProfileInput!) {
-//     test/routes/gql-mutations.test.js 1>         createPost(dto: $postDto) {
-//     test/routes/gql-mutations.test.js 1>             id
-//     test/routes/gql-mutations.test.js 1>         }
-//     test/routes/gql-mutations.test.js 1>         createUser(dto: $userDto) {
-//     test/routes/gql-mutations.test.js 1>             id
-//     test/routes/gql-mutations.test.js 1>         }
-//     test/routes/gql-mutations.test.js 1>         createProfile(dto: $profileDto) {
-//     test/routes/gql-mutations.test.js 1>             id
-//     test/routes/gql-mutations.test.js 1>         }
-//     test/routes/gql-mutations.test.js 1>     }
-//     test/routes/gql-mutations.test.js 1> {
-//     test/routes/gql-mutations.test.js 1>   userDto: { name: '4d4989ba-72cb-42e7-acd3-2a67e02a76c4', balance: 67.946 },
-//     test/routes/gql-mutations.test.js 1>   postDto: {
-//     test/routes/gql-mutations.test.js 1>     authorId: '037c3abd-a68b-4787-9ffd-78bfef2ecbe5',
-//     test/routes/gql-mutations.test.js 1>     content: '7e241aa9-1725-4712-af6f-008fa7e059d3',
-//     test/routes/gql-mutations.test.js 1>     title: 'dc987cfb-3944-436f-85af-bc8b571069b5'
-//     test/routes/gql-mutations.test.js 1>   },
-//     test/routes/gql-mutations.test.js 1>   profileDto: {
-//     test/routes/gql-mutations.test.js 1>     userId: '037c3abd-a68b-4787-9ffd-78bfef2ecbe5',
-//     test/routes/gql-mutations.test.js 1>     memberTypeId: 'BUSINESS',
-//     test/routes/gql-mutations.test.js 1>     isMale: true,
-//     test/routes/gql-mutations.test.js 1>     yearOfBirth: 1994
-//     test/routes/gql-mutations.test.js 1>   }
-//     test/routes/gql-mutations.test.js 1> }

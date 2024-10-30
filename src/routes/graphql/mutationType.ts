@@ -42,6 +42,10 @@ export const ChangePostInput = new GraphQLInputObjectType({
   },
 });
 
+export type ChangePostInputType = {
+  title: string;
+};
+
 export const ChangeProfileInput = new GraphQLInputObjectType({
   name: 'ChangeProfileInput',
   fields: {
@@ -49,9 +53,17 @@ export const ChangeProfileInput = new GraphQLInputObjectType({
   },
 });
 
+export type ChangeProfileInputType = {
+  isMale: boolean;
+};
+
 export const ChangeUserInput = new GraphQLInputObjectType({
   name: 'ChangeUserInput',
   fields: {
     name: { type: GraphQLString },
   },
 });
+
+export type ChangeUserInputType = {
+  name: string;
+};
