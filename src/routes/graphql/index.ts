@@ -45,9 +45,9 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
           variableValues: variables,
           contextValue: { prisma },
         });
-        console.log('---------------------результат');
-        console.log(JSON.stringify(result, null, 2));
-        console.log('---------------------результат конец');
+        // console.log('---------------------результат');
+        // console.log(JSON.stringify(result, null, 2));
+        // console.log('---------------------результат конец');
         return result;
       } catch (error) {
         console.error('Ошибка при выполнении запроса:', error);
