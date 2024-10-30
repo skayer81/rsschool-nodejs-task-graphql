@@ -104,13 +104,16 @@ export const queryType = new GraphQLObjectType({
             userSubscribedTo: {
               include: {
                 // subscribedToUser: true,
-                subscriber: true,
+                //   subscriber: true,
+                author: true,
               },
             },
+
             subscribedToUser: {
               include: {
                 // userSubscribedTo: true,
-                author: true,
+                //  author: true,
+                subscriber: true,
               },
             },
           },

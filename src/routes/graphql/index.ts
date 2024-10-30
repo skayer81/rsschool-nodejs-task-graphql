@@ -10,10 +10,13 @@ import {
   GraphQLObjectType,
   GraphQLSchema,
   GraphQLString,
+  validate,
+  parse,
 } from 'graphql';
 import { UUIDType } from './types/uuid.js';
 import { queryType } from './query.js';
 import schema from './schema.js';
+import depthLimit from 'graphql-depth-limit';
 
 const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
   const { prisma } = fastify;
@@ -39,11 +42,19 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
       // const schemaTest = new GraphQLSchema({ query: queryType });
 
       try {
+        const validationErrors = validate(schema, parse(query), [depthLimit(5)]);
+        if (validationErrors.length > 0) {
+          return {
+            errors: validationErrors,
+          };
+        }
         const result = await graphql({
           schema: schema,
           source: query,
           variableValues: variables,
           contextValue: { prisma },
+          //  validationRules: [depthLimit(5)],
+          //  validationRules: [depthLimit(10)],
         });
         // console.log('---------------------результат');
         // console.log(JSON.stringify(result, null, 2));

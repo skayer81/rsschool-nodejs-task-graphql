@@ -11,6 +11,10 @@ import {
   GraphQLString,
 } from 'graphql';
 import { UUIDType } from './types/uuid.js';
+import { PrismaClient } from '@prisma/client';
+type Prisma = {
+  prisma: PrismaClient;
+};
 
 export const MemberTypeIdEnum = new GraphQLEnumType({
   name: 'MemberTypeId',
@@ -72,29 +76,49 @@ export const UserType = new GraphQLObjectType({
     balance: { type: GraphQLFloat },
     profile: { type: ProfileType },
     posts: { type: new GraphQLList(PostType) },
+    // userSubscribedTo: { type: new GraphQLList(SubscribersOnAuthorsType) }, // Подписки пользователя
+    // subscribedToUser: { type: new GraphQLList(SubscribersOnAuthorsType) },
     userSubscribedTo: {
       type: new GraphQLList(UserType),
-      resolve: async (user, _, { prisma }) => {
+
+      resolve: async (user, _, context) => {
+        const currentDepth = context.currentDepth || 0;
+        console.log('+++++++++++++++++++++++++++++++++++++++++++', currentDepth);
+        // const currentDepth = context.currentDepth || 0;
+        if (currentDepth >= 5) {
+          throw new Error('exceeds maximum operation depth of 5');
+        }
+        context.currentDepth = currentDepth + 1;
         //   console.log('+++++++++++получаю userSubscribedTo +++++++++++++');
-        const subscriptions = await prisma.subscribersOnAuthors.findMany({
+        const subscriptions = await context.prisma.subscribersOnAuthors.findMany({
           where: { subscriberId: user.id },
           include: {
             author: true,
           },
+          // where: { authorId: user.id },
+          // include: {
+          //   subscriber: true,
+          // },
         });
-        //   console.log('Подписки:', subscriptions);
+        console.log('Подписки:', subscriptions);
         return subscriptions.map((sub) => sub.author);
       },
     },
+
     subscribedToUser: {
       type: new GraphQLList(UserType),
       resolve: async (user, _, { prisma }) => {
         // console.log('+++++++++++получаю subscribedToUser  +++++++++++++');
+        console.log('+++++++++++++++++++++++++++++++++++++++++++subscribedToUser');
         const subscriptions = await prisma.subscribersOnAuthors.findMany({
           where: { authorId: user.id },
           include: {
             subscriber: true,
           },
+          // where: { subscriberId: user.id },
+          // include: {
+          //   author: true,
+          // },
         });
         //   console.log('Подписчики:', subscriptions);
         return subscriptions.map((sub) => sub.subscriber);
@@ -108,8 +132,30 @@ export const SubscribersOnAuthorsType = new GraphQLObjectType({
   fields: () => ({
     subscriberId: { type: GraphQLString },
     authorId: { type: GraphQLString },
-    //author: { type: UserType },
+    // author: { type: UserType,
+    //   resolve: async (_, __, {prisma}: Prisma) => {
+    //     return await prisma.user.findUnique({where{id: authorId}})
+    //   }
+    //  },
+    author: {
+      type: UserType,
+      resolve: async (parent, _, { prisma }) => {
+        console.log('author++++++++++++++++++++++++++++++++++');
+        return await prisma.user.findUnique({
+          where: { id: parent.authorId }, // Получаем автора по authorId
+        });
+      },
+    },
     subscribedToUser: { type: GraphQLFloat },
+    subscriber: {
+      type: UserType,
+      resolve: async (parent, _, { prisma }) => {
+        console.log('subscriber++++++++++++++++++++++++++++++++++');
+        return await prisma.user.findUnique({
+          where: { id: parent.subscriberId }, // Получаем подписчика по subscriberId
+        });
+      },
+    },
   }),
 });
 
