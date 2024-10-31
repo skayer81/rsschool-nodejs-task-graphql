@@ -9,6 +9,7 @@ import {
 } from 'graphql';
 import { PrismaClient } from '@prisma/client';
 import { UUID } from 'crypto';
+import DataLoader from 'dataloader';
 type Prisma = {
   prisma: PrismaClient;
 };
@@ -51,18 +52,37 @@ export const UserType: GraphQLObjectType = new GraphQLObjectType({
     posts: { type: new GraphQLList(PostType) },
     userSubscribedTo: {
       type: new GraphQLList(UserType),
+      resolve: (source, args, context, info) => {
+        const { dataloaders } = context;
+        const id = source.id;
 
-      resolve: async (user: { id: UUID }, _, { prisma }: Prisma) => {
-        const subscriptions = await prisma.subscribersOnAuthors.findMany({
-          where: { subscriberId: user.id },
-          include: {
-            author: true,
-          },
-        });
-        return subscriptions.map((sub) => sub.author);
+        let dl = dataloaders.get(info.fieldNodes);
+        if (!dl) {
+          dl = new DataLoader(async (ids) => {
+            const subscriptions = await context.prisma.subscribersOnAuthors.findMany({
+              where: { subscriberId: { in: ids } },
+              include: {
+                author: true,
+              },
+            });
+
+            const subscriptionsMap = new Map();
+            subscriptions.forEach((sub) => {
+              if (!subscriptionsMap.has(sub.subscriberId)) {
+                subscriptionsMap.set(sub.subscriberId, []);
+              }
+              subscriptionsMap.get(sub.subscriberId).push(sub.author);
+            });
+
+            return ids.map((id) => subscriptionsMap.get(id) || []);
+          });
+
+          dataloaders.set(info.fieldNodes, dl);
+        }
+
+        return dl.load(id);
       },
     },
-
     subscribedToUser: {
       type: new GraphQLList(UserType),
       resolve: async (user: { id: UUID }, _, { prisma }: Prisma) => {

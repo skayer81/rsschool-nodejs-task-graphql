@@ -23,8 +23,8 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
     async handler(req) {
       const { query, variables } = req.body;
 
-      console.log(query);
-      console.log(variables);
+      // console.log(query);
+      // console.log(variables);
 
       // const schemaTest = new GraphQLSchema({ query: queryType });
 
@@ -39,7 +39,7 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
           schema: schema,
           source: query,
           variableValues: variables,
-          contextValue: { prisma },
+          contextValue: { prisma, dataloaders: new Map() },
           //  validationRules: [depthLimit(5)],
           //  validationRules: [depthLimit(10)],
         });
