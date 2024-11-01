@@ -1,18 +1,18 @@
-import { PrismaClient } from '@prisma/client';
+import { Post, PrismaClient } from '@prisma/client';
 import DataLoader from 'dataloader';
 
 export const createPostLoader = (prisma: PrismaClient) => {
-  return new DataLoader(async (ids) => {
+  return new DataLoader<string, Post[]>(async (ids) => {
     const posts = await prisma.post.findMany({
       where: { authorId: { in: ids as string[] } },
     });
 
-    const postsMap = new Map();
+    const postsMap = new Map<string, Post[]>();
     posts.forEach((post) => {
       if (!postsMap.has(post.authorId)) {
         postsMap.set(post.authorId, []);
       }
-      postsMap.get(post.authorId).push(post);
+      postsMap.get(post.authorId)?.push(post);
     });
     return ids.map((id) => postsMap.get(id) || []);
   });
