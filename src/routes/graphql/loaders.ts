@@ -1,9 +1,10 @@
+import { PrismaClient } from '@prisma/client';
 import DataLoader from 'dataloader';
 
-export const createPostLoader = (prisma) => {
+export const createPostLoader = (prisma: PrismaClient) => {
   return new DataLoader(async (ids) => {
     const posts = await prisma.post.findMany({
-      where: { authorId: { in: ids } },
+      where: { authorId: { in: ids as string[] } },
     });
 
     const postsMap = new Map();
@@ -17,10 +18,10 @@ export const createPostLoader = (prisma) => {
   });
 };
 
-export const createMemberTypeLoader = (prisma) => {
+export const createMemberTypeLoader = (prisma: PrismaClient) => {
   return new DataLoader(async (memberTypeIds) => {
     const memberTypes = await prisma.memberType.findMany({
-      where: { id: { in: memberTypeIds } },
+      where: { id: { in: memberTypeIds as string[] } },
     });
 
     const memberTypesMap = new Map();
@@ -35,10 +36,10 @@ export const createMemberTypeLoader = (prisma) => {
   });
 };
 
-export const createUserSubscribedToLoader = (prisma) => {
+export const createUserSubscribedToLoader = (prisma: PrismaClient) => {
   return new DataLoader(async (ids) => {
     const subscriptions = await prisma.subscribersOnAuthors.findMany({
-      where: { subscriberId: { in: ids } },
+      where: { subscriberId: { in: ids as string[] } },
       include: {
         author: true,
       },
@@ -56,10 +57,10 @@ export const createUserSubscribedToLoader = (prisma) => {
   });
 };
 
-export const createSubscribedToUserLoader = (prisma) => {
+export const createSubscribedToUserLoader = (prisma: PrismaClient) => {
   return new DataLoader(async (ids) => {
     const subscriptions = await prisma.subscribersOnAuthors.findMany({
-      where: { authorId: { in: ids } },
+      where: { authorId: { in: ids as string[] } },
       include: {
         subscriber: true,
       },
