@@ -14,8 +14,6 @@ import {
 const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
   const { prisma } = fastify;
 
-  //prisma.user.create({})
-
   fastify.route({
     url: '/',
     method: 'POST',
@@ -29,11 +27,6 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
     async handler(req) {
       const { query, variables } = req.body;
 
-      // console.log(query);
-      // console.log(variables);
-
-      // const schemaTest = new GraphQLSchema({ query: queryType });
-
       try {
         const validationErrors = validate(schema, parse(query), [depthLimit(5)]);
         if (validationErrors.length > 0) {
@@ -44,16 +37,8 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
 
         const postLoader = createPostLoader(prisma);
         const memberTypeLoader = createMemberTypeLoader(prisma);
-
         const userSubscribedToLoader = createUserSubscribedToLoader(prisma);
         const subscribedToUserLoader = createSubscribedToUserLoader(prisma);
-
-        // const result = await graphql({
-        //   schema: schema,
-        //   source: query,
-        //   variableValues: variables,
-        //   contextValue: { prisma, dataloaders: { postLoader } },
-        // });
 
         const result = await graphql({
           schema: schema,
@@ -75,7 +60,6 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
         return result;
       } catch (error) {
         console.error('Ошибка при выполнении запроса:', error);
-        // throw new Error('Ошибка при выполнении запроса');
       }
     },
   });

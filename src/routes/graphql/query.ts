@@ -55,7 +55,6 @@ export const queryType = new GraphQLObjectType({
     users: {
       type: new GraphQLList(UserType),
       resolve: async (_, __, { prisma }: Prisma) => {
-        //  if (!prisma.user) return;
         const result = await prisma.user.findMany({
           include: {
             profile: {

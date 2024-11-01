@@ -10,6 +10,11 @@ import {
 import { PrismaClient } from '@prisma/client';
 import { UUID } from 'crypto';
 import DataLoader from 'dataloader';
+import {
+  parseResolveInfo,
+  ResolveTree,
+  simplifyParsedResolveInfoFragmentWithType,
+} from 'graphql-parse-resolve-info';
 type Prisma = {
   prisma: PrismaClient;
 };
@@ -51,169 +56,20 @@ export const UserType: GraphQLObjectType = new GraphQLObjectType({
     profile: { type: ProfileType },
     posts: {
       type: new GraphQLList(PostType),
-      //   posts: {
-      //     type: new GraphQLList(PostType),
-      //  posts: {
-      //  type: new GraphQLList(PostType),
-      // resolve: async (source, _, context, info) => {
-      //   const authorId = source.id;
-      //   console.log(`Загружаем посты для автора с id: ${authorId}`);
-      //   const posts = await context.dataloaders.postLoader.load(authorId);
-      //   console.log('Загруженные посты:', posts);
-      //   return posts;
-      // },
+
       resolve: async (source, _, context, info) => {
         const id = source.id;
 
         return await context.dataloaders.postLoader.load(id);
       },
-      //   resolve: async (source, _, context, info) => {
-      //     const posts = await context.prisma.post.findMany({
-      //       where: { authorId: source.id },
-      //     });
-      //     return posts;
-      //   },
     },
-
-    //   },
-
-    //   resolve: async (source, _, context, info) => {
-    //     const { dataloaders } = context;
-    //     const id = source.id;
-    //     let dl = dataloaders.get(info.fieldNodes);
-
-    //     if (!dl) {
-    //       dl = new DataLoader(async (ids) => {
-    //         //  const posts = await context.prisma.post.findMany({ where: { authorId: id } });
-    //         const posts = await context.prisma.post.findMany({
-    //           where: { authorId: { in: ids } },
-    //         });
-    //         const sortedInIdsOrder = ids.map((id) => posts.find((x) => x.id === id));
-    //         return sortedInIdsOrder;
-    //       });
-    //       dataloaders.set(info.fieldNodes, dl);
-    //     }
-    //     return dl.load(id);
-    //   },
-
-    // posts: {
-    //  type: new GraphQLList(PostType),
-    //   resolve: async (source, _, context, info) => {
-    //     const { dataloaders } = context;
-    //     const id = source.id;
-
-    //       //     let dl = dataloaders.get(info.fieldNodes);
-
-    //     if (!dl) {
-    //       dl = new DataLoader(async (ids) => {
-    //         const posts = await context.prisma.post.findMany({
-    //           where: { authorId: { in: ids } },
-    //         });
-
-    //            //         const postsById = {};
-    //         posts.forEach((post) => {
-    //           postsById[post.authorId] = post;
-    //         });
-
-    //         return ids.map((id) => postsById[id as UUID] || null);
-    //       });
-
-    //       dataloaders.set(info.fieldNodes, dl);
-    //     }
-
-    //
-    //     return dl.load(id);
-    //   },
-    //   //   },
-    // },
-
-    // resolve2: async (source, _, context, info) => {
-    //   const { dataloaders } = context;
-    //   const id = source.id;
-    //   let dl = dataloaders.get(info.fieldNodes);
-
-    //   if (!dl) {
-    //     dl = new DataLoader(async (ids) => {
-    //       const posts = await context.prisma.post.findMany({
-    //         where: { authorId: { in: ids } },
-    //       });
-    //       const sortedInIdsOrder = ids.map((id) => posts.find((x) => x.id === id));
-    //       return sortedInIdsOrder;
-    //     });
-    //     dataloaders.set(info.fieldNodes, dl);
-    //   }
-
-    //
-    //   return dl.load(id);
-    // },
 
     userSubscribedTo: {
       type: new GraphQLList(UserType),
       resolve: async (source, _, context, info) => {
-        //  const { dataloaders } = context;
         const id = source.id;
         return await context.dataloaders.userSubscribedToLoader.load(id);
-        // if (!dataloaders.userSubscribedToLoader) {
-        //   dataloaders.userSubscribedToLoader = createUserSubscribedToLoader(
-        //     context.prisma,
-        //   );
-        // }
-
-        //  return dataloaders.userSubscribedToLoader.load(id);
       },
-      // resolve: async (source, args, context, info) => {
-      //     const id = source.id;
-      //     return await context.dataloaders.subscribedToUserLoader.load(id);
-      //   },
-      //   resolve: async (user: { id: UUID }, _, { prisma }: Prisma) => {
-      //     const subscriptions = await prisma.subscribersOnAuthors.findMany({
-      //       where: { subscriberId: user.id },
-      //       include: {
-      //         author: true,
-      //       },
-      //     });
-      //     return subscriptions.map((sub) => sub.author);
-      //   },
-
-      //   resolve: async (user: { id: UUID }, _, { prisma }: Prisma) => {
-      //     const subscriptions = await prisma.subscribersOnAuthors.findMany({
-      //       where: { subscriberId: user.id },
-      //       include: {
-      //         author: true,
-      //       },
-      //     });
-      //     return subscriptions.map((sub) => sub.author);
-      //   },
-      //   resolve: (source, args, context, info) => {
-      //     const { dataloaders } = context;
-      //     const id = source.id;
-
-      //     let dl = dataloaders.get(info.fieldNodes);
-      //     if (!dl) {
-      //       dl = new DataLoader(async (ids) => {
-      //         const subscriptions = await context.prisma.subscribersOnAuthors.findMany({
-      //           where: { subscriberId: { in: ids } },
-      //           include: {
-      //             author: true,
-      //           },
-      //         });
-
-      //         const subscriptionsMap = new Map();
-      //         subscriptions.forEach((sub) => {
-      //           if (!subscriptionsMap.has(sub.subscriberId)) {
-      //             subscriptionsMap.set(sub.subscriberId, []);
-      //           }
-      //           subscriptionsMap.get(sub.subscriberId).push(sub.author);
-      //         });
-
-      //         return ids.map((id) => subscriptionsMap.get(id) || []);
-      //       });
-
-      //       dataloaders.set(info.fieldNodes, dl);
-      //     }
-
-      //     return dl.load(id);
-      //   },
     },
     subscribedToUser: {
       type: new GraphQLList(UserType),
@@ -221,61 +77,6 @@ export const UserType: GraphQLObjectType = new GraphQLObjectType({
         const id = source.id;
         return await context.dataloaders.subscribedToUserLoader.load(id);
       },
-
-      //   resolve: async (user: { id: UUID }, _, { prisma }: Prisma) => {
-      //     const subscriptions = await prisma.subscribersOnAuthors.findMany({
-      //       where: { authorId: user.id },
-      //       include: {
-      //         subscriber: true,
-      //       },
-      //     });
-      //     return subscriptions.map((sub) => sub.subscriber);
-      //   },
-
-      //   resolve: async (source, _, context, info) => {
-      //     const id = source.memberTypeId;
-
-      //     return await context.dataloaders.memberTypeLoader.load(id);
-      //   },
-      //   resolve: async (user: { id: UUID }, _, { prisma }: Prisma) => {
-      //     const subscriptions = await prisma.subscribersOnAuthors.findMany({
-      //       where: { authorId: user.id },
-      //       include: {
-      //         subscriber: true,
-      //       },
-      //     });
-      //     return subscriptions.map((sub) => sub.subscriber);
-      //   },
-      //   resolve: (source, args, context, info) => {
-      //     const { dataloaders } = context;
-      //     const id = source.id;
-
-      //     let dl = dataloaders.get(info.fieldNodes);
-      //     if (!dl) {
-      //       dl = new DataLoader(async (ids) => {
-      //         const subscriptions = await context.prisma.subscribersOnAuthors.findMany({
-      //           where: { authorId: { in: ids } },
-      //           include: {
-      //             subscriber: true,
-      //           },
-      //         });
-
-      //         const subscriptionsMap = new Map();
-      //         subscriptions.forEach((sub) => {
-      //           if (!subscriptionsMap.has(sub.authorId)) {
-      //             subscriptionsMap.set(sub.authorId, []);
-      //           }
-      //           subscriptionsMap.get(sub.authorId).push(sub.subscriber);
-      //         });
-
-      //         return ids.map((id) => subscriptionsMap.get(id) || []);
-      //       });
-
-      //       dataloaders.set(info.fieldNodes, dl);
-      //     }
-
-      //     return dl.load(id);
-      //   },
     },
   }),
 });
@@ -323,12 +124,6 @@ export const ProfileType = new GraphQLObjectType({
 
     memberType: {
       type: MemberType,
-      //   resolve: async (profile: { memberTypeId: UUID }, _, { prisma }: Prisma) => {
-      //     const memberType = await prisma.memberType.findUnique({
-      //       where: { id: profile.memberTypeId },
-      //     });
-      //     return memberType;
-      //   },
       resolve: async (source, _, context, info) => {
         const id = source.memberTypeId;
 

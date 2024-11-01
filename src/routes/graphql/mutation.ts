@@ -90,7 +90,6 @@ export const mutationType = new GraphQLObjectType({
       },
     },
     deletePost: {
-      // type: PostType,
       type: GraphQLString,
       args: {
         id: { type: UUIDType },
@@ -105,7 +104,6 @@ export const mutationType = new GraphQLObjectType({
       },
     },
     deleteProfile: {
-      // type: ProfileType,
       type: GraphQLString,
       args: {
         id: { type: UUIDType },
@@ -120,9 +118,8 @@ export const mutationType = new GraphQLObjectType({
       },
     },
     deleteUser: {
-      //type: UserType,
       type: GraphQLString,
-      // type: null,
+
       args: {
         id: { type: UUIDType },
       },
