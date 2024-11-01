@@ -1,4 +1,4 @@
-import { Post, PrismaClient } from '@prisma/client';
+import { MemberType, Post, PrismaClient, User } from '@prisma/client';
 import DataLoader from 'dataloader';
 
 export const createPostLoader = (prisma: PrismaClient) => {
@@ -19,16 +19,13 @@ export const createPostLoader = (prisma: PrismaClient) => {
 };
 
 export const createMemberTypeLoader = (prisma: PrismaClient) => {
-  return new DataLoader(async (memberTypeIds) => {
+  return new DataLoader<string, MemberType | null>(async (memberTypeIds) => {
     const memberTypes = await prisma.memberType.findMany({
       where: { id: { in: memberTypeIds as string[] } },
     });
 
-    const memberTypesMap = new Map();
+    const memberTypesMap = new Map<string, MemberType>();
     memberTypes.forEach((memberType) => {
-      if (!memberTypesMap.has(memberType.id)) {
-        memberTypesMap.set(memberType.id, []);
-      }
       memberTypesMap.set(memberType.id, memberType);
     });
     console.log('memberTypeIds:', memberTypeIds);
@@ -37,7 +34,7 @@ export const createMemberTypeLoader = (prisma: PrismaClient) => {
 };
 
 export const createUserSubscribedToLoader = (prisma: PrismaClient) => {
-  return new DataLoader(async (ids) => {
+  return new DataLoader<string, User[]>(async (ids) => {
     const subscriptions = await prisma.subscribersOnAuthors.findMany({
       where: { subscriberId: { in: ids as string[] } },
       include: {
@@ -45,12 +42,12 @@ export const createUserSubscribedToLoader = (prisma: PrismaClient) => {
       },
     });
 
-    const subscriptionsMap = new Map();
+    const subscriptionsMap = new Map<string, User[]>();
     subscriptions.forEach((sub) => {
       if (!subscriptionsMap.has(sub.subscriberId)) {
         subscriptionsMap.set(sub.subscriberId, []);
       }
-      subscriptionsMap.get(sub.subscriberId).push(sub.author);
+      subscriptionsMap.get(sub.subscriberId)?.push(sub.author);
     });
 
     return ids.map((id) => subscriptionsMap.get(id) || []);
@@ -58,7 +55,7 @@ export const createUserSubscribedToLoader = (prisma: PrismaClient) => {
 };
 
 export const createSubscribedToUserLoader = (prisma: PrismaClient) => {
-  return new DataLoader(async (ids) => {
+  return new DataLoader<string, User[]>(async (ids) => {
     const subscriptions = await prisma.subscribersOnAuthors.findMany({
       where: { authorId: { in: ids as string[] } },
       include: {
@@ -66,12 +63,13 @@ export const createSubscribedToUserLoader = (prisma: PrismaClient) => {
       },
     });
 
-    const subscriptionsMap = new Map();
+    const subscriptionsMap = new Map<string, User[]>();
     subscriptions.forEach((sub) => {
       if (!subscriptionsMap.has(sub.authorId)) {
         subscriptionsMap.set(sub.authorId, []);
       }
-      subscriptionsMap.get(sub.authorId).push(sub.subscriber);
+
+      subscriptionsMap.get(sub.authorId)?.push(sub.subscriber);
     });
 
     return ids.map((id) => subscriptionsMap.get(id) || []);
