@@ -4,6 +4,12 @@ import { graphql, validate, parse } from 'graphql';
 
 import schema from './schema.js';
 import depthLimit from 'graphql-depth-limit';
+import {
+  createMemberTypeLoader,
+  createPostLoader,
+  createSubscribedToUserLoader,
+  createUserSubscribedToLoader,
+} from './loaders.js';
 
 const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
   const { prisma } = fastify;
@@ -35,13 +41,33 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
             errors: validationErrors,
           };
         }
+
+        const postLoader = createPostLoader(prisma);
+        const memberTypeLoader = createMemberTypeLoader(prisma);
+
+        const userSubscribedToLoader = createUserSubscribedToLoader(prisma);
+        const subscribedToUserLoader = createSubscribedToUserLoader(prisma);
+
+        // const result = await graphql({
+        //   schema: schema,
+        //   source: query,
+        //   variableValues: variables,
+        //   contextValue: { prisma, dataloaders: { postLoader } },
+        // });
+
         const result = await graphql({
           schema: schema,
           source: query,
           variableValues: variables,
-          contextValue: { prisma, dataloaders: new Map() },
-          //  validationRules: [depthLimit(5)],
-          //  validationRules: [depthLimit(10)],
+          contextValue: {
+            prisma,
+            dataloaders: {
+              postLoader,
+              memberTypeLoader,
+              userSubscribedToLoader,
+              subscribedToUserLoader,
+            },
+          },
         });
         // console.log('---------------------результат');
         // console.log(JSON.stringify(result, null, 2));
