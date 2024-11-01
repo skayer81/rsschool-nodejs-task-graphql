@@ -7,18 +7,22 @@ import {
   GraphQLObjectType,
   GraphQLString,
 } from 'graphql';
-import { PrismaClient } from '@prisma/client';
+import { MemberType, Post, PrismaClient, User } from '@prisma/client';
 import { UUID } from 'crypto';
 import DataLoader from 'dataloader';
-import {
-  parseResolveInfo,
-  ResolveTree,
-  simplifyParsedResolveInfoFragmentWithType,
-} from 'graphql-parse-resolve-info';
+
 type Prisma = {
   prisma: PrismaClient;
 };
 
+type Context = {
+  dataloaders: {
+    postLoader: DataLoader<string, Post[]>;
+    userSubscribedToLoader: DataLoader<string, User[]>;
+    subscribedToUserLoader: DataLoader<string, User[]>;
+    memberTypeLoader: DataLoader<string, MemberType | null>;
+  };
+};
 export const MemberTypeIdEnum = new GraphQLEnumType({
   name: 'MemberTypeId',
   values: {
@@ -27,7 +31,7 @@ export const MemberTypeIdEnum = new GraphQLEnumType({
   },
 });
 
-export const MemberType: GraphQLObjectType = new GraphQLObjectType({
+export const MemberTypeType: GraphQLObjectType = new GraphQLObjectType({
   name: 'MemberType',
   fields: () => ({
     id: { type: GraphQLString },
@@ -56,24 +60,22 @@ export const UserType: GraphQLObjectType = new GraphQLObjectType({
     profile: { type: ProfileType },
     posts: {
       type: new GraphQLList(PostType),
-
-      resolve: async (source, _, context, info) => {
+      resolve: async (source: { id: string }, _, context: Context) => {
         const id = source.id;
-
         return await context.dataloaders.postLoader.load(id);
       },
     },
 
     userSubscribedTo: {
       type: new GraphQLList(UserType),
-      resolve: async (source, _, context, info) => {
+      resolve: async (source, _, context) => {
         const id = source.id;
         return await context.dataloaders.userSubscribedToLoader.load(id);
       },
     },
     subscribedToUser: {
       type: new GraphQLList(UserType),
-      resolve: async (source, args, context, info) => {
+      resolve: async (source, args, context) => {
         const id = source.id;
         return await context.dataloaders.subscribedToUserLoader.load(id);
       },
@@ -123,8 +125,8 @@ export const ProfileType = new GraphQLObjectType({
     userId: { type: GraphQLString },
 
     memberType: {
-      type: MemberType,
-      resolve: async (source, _, context, info) => {
+      type: MemberTypeType,
+      resolve: async (source: { memberTypeId: string }, _, context: Context) => {
         const id = source.memberTypeId;
 
         return await context.dataloaders.memberTypeLoader.load(id);

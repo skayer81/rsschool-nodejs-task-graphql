@@ -1,7 +1,7 @@
 import { GraphQLList, GraphQLObjectType } from 'graphql';
 import { UUIDType } from './types/uuid.js';
 import {
-  MemberType,
+  MemberTypeType,
   MemberTypeIdEnum,
   PostType,
   ProfileType,
@@ -17,13 +17,13 @@ export const queryType = new GraphQLObjectType({
   name: 'Query',
   fields: () => ({
     memberTypes: {
-      type: new GraphQLList(MemberType),
+      type: new GraphQLList(MemberTypeType),
       resolve: async (_, __, { prisma }: Prisma) => {
         return await prisma.memberType.findMany({});
       },
     },
     memberType: {
-      type: MemberType,
+      type: MemberTypeType,
       args: {
         id: { type: MemberTypeIdEnum },
       },
