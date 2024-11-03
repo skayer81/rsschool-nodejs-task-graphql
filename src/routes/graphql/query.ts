@@ -62,6 +62,8 @@ export const queryType = new GraphQLObjectType({
                 memberType: true,
               },
             },
+            userSubscribedTo: true,
+            subscribedToUser: true,
             posts: true,
           },
         });
