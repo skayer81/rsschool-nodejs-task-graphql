@@ -8,6 +8,7 @@ import {
   UserType,
 } from './queryTypes.js';
 import { PrismaClient } from '@prisma/client';
+import { parseResolveInfo } from 'graphql-parse-resolve-info';
 
 type Prisma = {
   prisma: PrismaClient;
@@ -54,19 +55,62 @@ export const queryType = new GraphQLObjectType({
     },
     users: {
       type: new GraphQLList(UserType),
-      resolve: async (_, __, { prisma }: Prisma) => {
-        const result = await prisma.user.findMany({
+      resolve: async (_, __, { prisma }: Prisma, info) => {
+        const parsedResolveInfoFragment = parseResolveInfo(info);
+        const fields = parsedResolveInfoFragment?.fieldsByTypeName.User;
+        const includeArgs: {
+          include: {
+            profile: {
+              include: {
+                memberType: true;
+              };
+            };
+            userSubscribedTo?: boolean;
+            subscribedToUser?: boolean;
+            //  userSubscribedTo: true,
+            // subscribedToUser: true,
+            posts: true;
+          };
+        } = {
           include: {
             profile: {
               include: {
                 memberType: true,
               },
             },
-            userSubscribedTo: true,
-            subscribedToUser: true,
+            //   userSubscribedTo?: true;
+            //   subscribedToUser?: true;
+            //  userSubscribedTo: true,
+            // subscribedToUser: true,
             posts: true,
           },
-        });
+        };
+
+        // {
+        //   userSubscribedTo?: true;
+        //   subscribedToUser?: true;
+        // } = {};
+
+        if (fields && 'userSubscribedTo' in fields) {
+          includeArgs.include.userSubscribedTo = true;
+        }
+
+        if (fields && 'subscribedToUser' in fields) {
+          includeArgs.include.subscribedToUser = true;
+        }
+
+        const result = await prisma.user.findMany(includeArgs); //{
+        //   include: {
+        //     profile: {
+        //       include: {
+        //         memberType: true,
+        //       },
+        //     },
+        //     //  userSubscribedTo: true,
+        //     // subscribedToUser: true,
+        //     posts: true,
+        //   },
+        // });
         return result;
       },
     },
