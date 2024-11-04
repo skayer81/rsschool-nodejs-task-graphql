@@ -8,6 +8,7 @@ import {
   createMemberTypeLoader,
   createPostLoader,
   createSubscribedToUserLoader,
+  createUserLoader,
   createUserSubscribedToLoader,
 } from './loaders.js';
 
@@ -39,6 +40,7 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
         const memberTypeLoader = createMemberTypeLoader(prisma);
         const userSubscribedToLoader = createUserSubscribedToLoader(prisma);
         const subscribedToUserLoader = createSubscribedToUserLoader(prisma);
+        const userLoader = createUserLoader(prisma);
 
         const result = await graphql({
           schema: schema,
@@ -51,6 +53,7 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
               memberTypeLoader,
               userSubscribedToLoader,
               subscribedToUserLoader,
+              userLoader,
             },
           },
         });

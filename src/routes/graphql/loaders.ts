@@ -75,3 +75,21 @@ export const createSubscribedToUserLoader = (prisma: PrismaClient) => {
     return ids.map((id) => subscriptionsMap.get(id) || []);
   });
 };
+
+export const createUserLoader = (prisma: PrismaClient) => {
+  return new DataLoader<string, User | null>(async (ids) => {
+    const user = await prisma.user.findMany({
+      where: { id: { in: ids as string[] } },
+      include: {
+        userSubscribedTo: true,
+        subscribedToUser: true,
+      },
+    });
+
+    const memberTypesMap = new Map<string, User>();
+    user.forEach((user) => {
+      memberTypesMap.set(user.id, user);
+    });
+    return ids.map((id) => memberTypesMap.get(id) || null);
+  });
+};

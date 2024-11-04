@@ -7,10 +7,18 @@ import {
   ProfileType,
   UserType,
 } from './queryTypes.js';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, User } from '@prisma/client';
 import { parseResolveInfo } from 'graphql-parse-resolve-info';
+import DataLoader from 'dataloader';
 
 type Prisma = {
+  prisma: PrismaClient;
+};
+
+type Context = {
+  dataloaders: {
+    usersLoader: DataLoader<string, User[]>;
+  };
   prisma: PrismaClient;
 };
 
@@ -19,7 +27,7 @@ export const queryType = new GraphQLObjectType({
   fields: () => ({
     memberTypes: {
       type: new GraphQLList(MemberTypeType),
-      resolve: async (_, __, { prisma }: Prisma) => {
+      resolve: async (_, __, { prisma }: Context) => {
         return await prisma.memberType.findMany({});
       },
     },
@@ -55,7 +63,7 @@ export const queryType = new GraphQLObjectType({
     },
     users: {
       type: new GraphQLList(UserType),
-      resolve: async (_, __, { prisma }: Prisma, info) => {
+      resolve: async (source: { id: string }, __, context: Context, info) => {
         const parsedResolveInfoFragment = parseResolveInfo(info);
         const fields = parsedResolveInfoFragment?.fieldsByTypeName.User;
         const includeArgs: {
@@ -99,7 +107,8 @@ export const queryType = new GraphQLObjectType({
           includeArgs.include.subscribedToUser = true;
         }
 
-        const result = await prisma.user.findMany(includeArgs); //{
+        // const result = await context?.dataloaders?.usersLoader.load(source.id); //
+        const result = await context.prisma.user.findMany(includeArgs); //{
         //   include: {
         //     profile: {
         //       include: {
