@@ -28,7 +28,6 @@ export const createMemberTypeLoader = (prisma: PrismaClient) => {
     memberTypes.forEach((memberType) => {
       memberTypesMap.set(memberType.id, memberType);
     });
-    console.log('memberTypeIds:', memberTypeIds);
     return memberTypeIds.map((id) => memberTypesMap.get(id) || null);
   });
 };

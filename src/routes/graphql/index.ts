@@ -57,12 +57,9 @@ const plugin: FastifyPluginAsyncTypebox = async (fastify) => {
             },
           },
         });
-        // console.log('---------------------результат');
-        // console.log(JSON.stringify(result, null, 2));
-        // console.log('---------------------результат конец');
         return result;
       } catch (error) {
-        console.error('Ошибка при выполнении запроса:', error);
+        console.error(error);
       }
     },
   });

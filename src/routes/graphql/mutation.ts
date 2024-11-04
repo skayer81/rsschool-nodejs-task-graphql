@@ -95,11 +95,9 @@ export const mutationType = new GraphQLObjectType({
         id: { type: UUIDType },
       },
       resolve: async (_, { id }: { id: UUID }, { prisma }: Prisma) => {
-        console.log('post');
         const post = await prisma.post.delete({
           where: { id: id },
         });
-        console.log('post', post);
         return 'post';
       },
     },
@@ -109,11 +107,9 @@ export const mutationType = new GraphQLObjectType({
         id: { type: UUIDType },
       },
       resolve: async (_, { id }: { id: UUID }, { prisma }: Prisma) => {
-        console.log('profile');
         const profile = await prisma.profile.delete({
           where: { id: id },
         });
-        console.log('profile', profile);
         return 'profile';
       },
     },
@@ -124,11 +120,9 @@ export const mutationType = new GraphQLObjectType({
         id: { type: UUIDType },
       },
       resolve: async (_, { id }: { id: UUID }, { prisma }: Prisma) => {
-        console.log('user');
         const user = await prisma.user.delete({
           where: { id: id },
         });
-        console.log('user', user);
         return 'user';
       },
     },
